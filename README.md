@@ -17,12 +17,11 @@
   </a>
   <img src="https://img.shields.io/badge/Android-14+-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android 14+">
   <img src="https://img.shields.io/badge/Go-1.21+-00ADD8?style=for-the-badge&logo=go&logoColor=white" alt="Go">
-  <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="MIT License">
+  <img src="https://img.shields.io/badge/License-AGPL--3.0-blue?style=for-the-badge" alt="AGPL-3.0 License">
 </p>
 
 <p align="center">
-  Never miss a message while working.<br>
-  LaNotifica mirrors your phone notifications directly to your desktop —<br>
+  Your phone notifications, on your desktop.<br>
   WhatsApp, Telegram, calls, everything.
 </p>
 
@@ -61,12 +60,17 @@
 
 ### Server (Linux)
 
+**Fedora / RHEL:**
 ```bash
-go install github.com/alessandrolattao/lanotifica/cmd/lanotifica@latest
-lanotifica
+curl -sL $(curl -s https://api.github.com/repos/alessandrolattao/lanotifica/releases/latest | grep -o 'https://.*\.rpm') | sudo dnf install -y /dev/stdin
 ```
 
-Open `https://localhost:8443` and scan the QR code.
+**Ubuntu / Debian:**
+```bash
+curl -sLO $(curl -s https://api.github.com/repos/alessandrolattao/lanotifica/releases/latest | grep -o 'https://.*\.deb') && sudo dpkg -i lanotifica_*.deb && rm lanotifica_*.deb
+```
+
+Then open `https://localhost:19420` and scan the QR code.
 
 ### App (Android)
 
@@ -99,4 +103,4 @@ Or build from source in `app/`.
 
 ## License
 
-MIT
+AGPL-3.0
