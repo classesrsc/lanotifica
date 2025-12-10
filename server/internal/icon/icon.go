@@ -86,7 +86,7 @@ func (c *Cache) downloadAndCache(packageName, iconPath string) error {
 func (c *Cache) fetchIconURLFromPlayStore(ctx context.Context, packageName string) (string, error) {
 	playStoreURL := "https://play.google.com/store/apps/details?id=" + packageName
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, playStoreURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, playStoreURL, http.NoBody)
 	if err != nil {
 		return "", fmt.Errorf("creating request: %w", err)
 	}
@@ -119,7 +119,7 @@ func (c *Cache) fetchIconURLFromPlayStore(ctx context.Context, packageName strin
 }
 
 func (c *Cache) saveIconToCache(ctx context.Context, iconURL, iconPath string) error {
-	iconReq, err := http.NewRequestWithContext(ctx, http.MethodGet, iconURL, nil)
+	iconReq, err := http.NewRequestWithContext(ctx, http.MethodGet, iconURL, http.NoBody)
 	if err != nil {
 		return fmt.Errorf("creating icon request: %w", err)
 	}
@@ -130,8 +130,8 @@ func (c *Cache) saveIconToCache(ctx context.Context, iconURL, iconPath string) e
 	}
 	defer func() { _ = iconResp.Body.Close() }()
 
-	if err := os.MkdirAll(c.dir, 0750); err != nil {
-		return fmt.Errorf("creating cache dir: %w", err)
+	if mkdirErr := os.MkdirAll(c.dir, 0o750); mkdirErr != nil {
+		return fmt.Errorf("creating cache dir: %w", mkdirErr)
 	}
 
 	file, err := os.Create(iconPath) //nolint:gosec // iconPath is controlled internally

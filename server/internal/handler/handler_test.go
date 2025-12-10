@@ -37,7 +37,7 @@ func TestNotification_Success(t *testing.T) {
 func TestNotification_MethodNotAllowed(t *testing.T) {
 	t.Parallel()
 
-	req := httptest.NewRequest(http.MethodGet, "/notification", nil)
+	req := httptest.NewRequest(http.MethodGet, "/notification", http.NoBody)
 	rr := httptest.NewRecorder()
 
 	Notification(rr, req)

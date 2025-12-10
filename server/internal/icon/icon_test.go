@@ -36,7 +36,7 @@ func TestCache_GetIconPath_CachedIcon(t *testing.T) {
 
 	// Create a fake cached icon.
 	testPath := filepath.Join(tempDir, "com.test.app.png")
-	if err := os.WriteFile(testPath, []byte("fake icon"), 0600); err != nil {
+	if err := os.WriteFile(testPath, []byte("fake icon"), 0o600); err != nil {
 		t.Fatalf("Failed to write test file: %v", err)
 	}
 
@@ -71,7 +71,7 @@ func TestCache_existsInCache(t *testing.T) {
 
 	// Existing file.
 	existingPath := filepath.Join(tempDir, "existing.png")
-	if err := os.WriteFile(existingPath, []byte("test"), 0600); err != nil {
+	if err := os.WriteFile(existingPath, []byte("test"), 0o600); err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
 	if !cache.existsInCache(existingPath) {

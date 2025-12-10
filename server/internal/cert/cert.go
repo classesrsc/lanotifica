@@ -103,12 +103,12 @@ func create(certPath, keyPath string) (*Certificate, error) {
 	}
 	defer func() { _ = certFile.Close() }()
 
-	if err := pem.Encode(certFile, &pem.Block{Type: "CERTIFICATE", Bytes: certDER}); err != nil {
-		return nil, fmt.Errorf("encoding certificate: %w", err)
+	if encodeErr := pem.Encode(certFile, &pem.Block{Type: "CERTIFICATE", Bytes: certDER}); encodeErr != nil {
+		return nil, fmt.Errorf("encoding certificate: %w", encodeErr)
 	}
 
 	// Save private key
-	keyFile, err := os.OpenFile(keyPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600) //nolint:gosec // keyPath is controlled internally
+	keyFile, err := os.OpenFile(keyPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600) //nolint:gosec // keyPath is controlled internally
 	if err != nil {
 		return nil, fmt.Errorf("creating key file: %w", err)
 	}

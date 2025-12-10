@@ -27,7 +27,7 @@ func TestDefaultConfig(t *testing.T) {
 	}
 }
 
-func TestLoad_CreatesDefaultIfNotExists(t *testing.T) { //nolint:paralleltest // modifies global state
+func TestLoad_CreatesDefaultIfNotExists(t *testing.T) {
 	setupTestConfig(t)
 
 	cfg, err := Load()
@@ -46,11 +46,11 @@ func TestLoad_CreatesDefaultIfNotExists(t *testing.T) { //nolint:paralleltest //
 	}
 }
 
-func TestLoad_ReadsExistingConfig(t *testing.T) { //nolint:paralleltest // modifies global state
+func TestLoad_ReadsExistingConfig(t *testing.T) {
 	setupTestConfig(t)
 
 	// Create a custom config.
-	if err := os.MkdirAll(configDir, 0750); err != nil {
+	if err := os.MkdirAll(configDir, 0o750); err != nil {
 		t.Fatalf("Failed to create config dir: %v", err)
 	}
 
@@ -61,7 +61,7 @@ func TestLoad_ReadsExistingConfig(t *testing.T) { //nolint:paralleltest // modif
   "idle_timeout_seconds": 300,
   "icon_cache_max_age_days": 60
 }`
-	if err := os.WriteFile(configPath, []byte(customConfig), 0600); err != nil {
+	if err := os.WriteFile(configPath, []byte(customConfig), 0o600); err != nil {
 		t.Fatalf("Failed to write config: %v", err)
 	}
 
