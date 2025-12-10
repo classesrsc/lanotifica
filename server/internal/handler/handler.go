@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/alessandrolattao/la-notify/internal/notification"
+	"github.com/alessandrolattao/lanotifica/internal/notification"
 )
 
 // Notification handles POST requests to send notifications.

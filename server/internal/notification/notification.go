@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/TheCreeper/go-notify"
-	"github.com/alessandrolattao/la-notify/internal/icon"
+	"github.com/alessandrolattao/lanotifica/internal/icon"
 )
 
 // Request represents a notification request from the client.

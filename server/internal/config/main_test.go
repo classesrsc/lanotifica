@@ -30,7 +30,7 @@ func setupTestConfig(t *testing.T) {
 	t.Helper()
 
 	tempDir := t.TempDir()
-	configDir = filepath.Join(tempDir, "la-notify")
+	configDir = filepath.Join(tempDir, "lanotifica")
 	configPath = filepath.Join(configDir, "config.json")
 
 	t.Cleanup(func() {

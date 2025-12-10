@@ -1,4 +1,4 @@
-// Package config provides configuration management for LaNotify.
+// Package config provides configuration management for LaNotifica.
 package config
 
 import (
@@ -45,13 +45,13 @@ var configPath string
 
 func init() {
 	// Follow XDG Base Directory Specification.
-	// Use $XDG_CONFIG_HOME/la-notify or ~/.config/la-notify.
+	// Use $XDG_CONFIG_HOME/lanotifica or ~/.config/lanotifica.
 	xdgConfig := os.Getenv("XDG_CONFIG_HOME")
 	if xdgConfig == "" {
 		home, _ := os.UserHomeDir()
 		xdgConfig = filepath.Join(home, ".config")
 	}
-	configDir = filepath.Join(xdgConfig, "la-notify")
+	configDir = filepath.Join(xdgConfig, "lanotifica")
 	configPath = filepath.Join(configDir, "config.json")
 }
 

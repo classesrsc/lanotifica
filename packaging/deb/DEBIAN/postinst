@@ -2,8 +2,8 @@
 set -e
 
 echo ""
-echo "To enable LA-notify for your user, run:"
-echo "  systemctl --user enable --now la-notify"
+echo "To enable LaNotifica for your user, run:"
+echo "  systemctl --user enable --now lanotifica"
 echo ""
 
 exit 0

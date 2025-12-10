@@ -1,4 +1,4 @@
-Package: la-notify
+Package: lanotifica
 Version: ${VERSION}
 Section: net
 Priority: optional
@@ -7,4 +7,4 @@ Maintainer: Alessandro Lattao <alessandro@lattao.com>
 Description: Android notification forwarder for Linux desktop
  HTTP server that receives notifications from Android devices
  and displays them on Linux desktop via D-Bus notifications.
-Homepage: https://github.com/alessandrolattao/la-notify
+Homepage: https://github.com/alessandrolattao/lanotifica

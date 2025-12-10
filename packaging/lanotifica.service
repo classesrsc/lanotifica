@@ -1,0 +1,13 @@
+[Unit]
+Description=LaNotifica - Android notification forwarder
+Documentation=https://github.com/alessandrolattao/lanotifica
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/lanotifica
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

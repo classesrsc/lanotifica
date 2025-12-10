@@ -1,12 +1,12 @@
 %global debug_package %{nil}
 
-Name:           la-notify
+Name:           lanotifica
 Version:        %{version}
 Release:        1%{?dist}
 Summary:        Android notification forwarder for Linux desktop
 
 License:        AGPL-3.0-only
-URL:            https://github.com/alessandrolattao/la-notify
+URL:            https://github.com/alessandrolattao/lanotifica
 Source0:        %{name}-%{version}.tar.gz
 
 %description
@@ -23,8 +23,8 @@ install -Dm644 LICENSE %{buildroot}%{_licensedir}/%{name}/LICENSE
 
 %post
 echo ""
-echo "To enable LA-notify for your user, run:"
-echo "  systemctl --user enable --now la-notify"
+echo "To enable LaNotifica for your user, run:"
+echo "  systemctl --user enable --now lanotifica"
 echo ""
 
 %files

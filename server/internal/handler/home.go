@@ -15,7 +15,7 @@ var homeTemplate = template.Must(template.New("home").Parse(`<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LaNotify</title>
+    <title>LaNotifica</title>
     <style>
         * {
             margin: 0;
@@ -101,7 +101,7 @@ var homeTemplate = template.Must(template.New("home").Parse(`<!DOCTYPE html>
 </head>
 <body>
     <div class="container">
-        <h1>LaNotify</h1>
+        <h1>LaNotifica</h1>
         <p class="subtitle">Forward Android notifications to your desktop</p>
 
         <div class="qr-container">
@@ -111,7 +111,7 @@ var homeTemplate = template.Must(template.New("home").Parse(`<!DOCTYPE html>
         <div class="instructions">
             <h2>Setup Instructions</h2>
             <ol>
-                <li>Install <strong>LaNotify</strong> app on your Android device</li>
+                <li>Install <strong>LaNotifica</strong> app on your Android device</li>
                 <li>Open the app and tap <strong>Scan QR Code</strong></li>
                 <li>Point your camera at the QR code above</li>
                 <li>Grant <strong>Notification Access</strong> permission</li>
@@ -121,7 +121,8 @@ var homeTemplate = template.Must(template.New("home").Parse(`<!DOCTYPE html>
         </div>
 
         <div class="note">
-            The QR code contains the server URL and authentication token.
+            The QR code contains the authentication token and certificate fingerprint.
+            The server is discovered automatically via mDNS on your local network.
             Keep it private and don't share it.
         </div>
     </div>
@@ -129,8 +130,9 @@ var homeTemplate = template.Must(template.New("home").Parse(`<!DOCTYPE html>
 </html>`))
 
 // HomeHandler returns a handler that displays the home page with QR code.
-func HomeHandler(serverURL, secret string) http.HandlerFunc {
-	qrData := fmt.Sprintf("%s|%s", serverURL, secret)
+func HomeHandler(secret, certFingerprint string) http.HandlerFunc {
+	// QR format: token|fingerprint (URL is discovered via mDNS)
+	qrData := fmt.Sprintf("%s|%s", secret, certFingerprint)
 
 	qr, err := qrcode.Encode(qrData, qrcode.Medium, 256)
 	if err != nil {
