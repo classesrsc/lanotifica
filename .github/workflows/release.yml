@@ -4,12 +4,78 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      play_store_track:
+        description: 'Play Store track'
+        required: false
+        default: 'internal'
+        type: choice
+        options:
+          - internal
+          - alpha
+          - beta
+          - production
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  # ============================================
+  # TEST JOBS
+  # ============================================
+
+  test-server:
+    name: Test Server (Go)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Run tests
+        run: go test -v ./...
+
+      - name: Run linter
+        uses: golangci/golangci-lint-action@v4
+        with:
+          version: latest
+
+  test-android:
+    name: Test Android
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run lint
+        run: ./gradlew lint --no-daemon
+
+      - name: Run unit tests
+        run: ./gradlew test --no-daemon
+
+  # ============================================
+  # BUILD JOBS
+  # ============================================
+
+  build-server:
+    name: Build Server
+    needs: test-server
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,7 +90,12 @@ jobs:
 
       - name: Get version from tag
         id: version
-        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+        run: |
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=0.0.0-dev" >> $GITHUB_OUTPUT
+          fi
 
       - name: Build binary
         run: make build
@@ -38,8 +109,143 @@ jobs:
       - name: Copy RPM to dist
         run: cp ~/rpmbuild/RPMS/x86_64/*.rpm dist/
 
+      - name: Upload server artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-packages
+          path: dist/*
+
+  build-android:
+    name: Build Android
+    needs: test-android
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Get version from tag
+        id: version
+        run: |
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=0.0.0-dev" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Decode Keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/lanotifica-release.jks
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Release AAB
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew bundleRelease --no-daemon
+
+      - name: Build Release APK
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Rename artifacts
+        run: |
+          mv app/build/outputs/bundle/release/app-release.aab \
+             app/build/outputs/bundle/release/lanotifica-${{ steps.version.outputs.VERSION }}.aab
+          mv app/build/outputs/apk/release/app-release.apk \
+             app/build/outputs/apk/release/lanotifica-${{ steps.version.outputs.VERSION }}.apk
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-aab
+          path: app/app/build/outputs/bundle/release/*.aab
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: app/app/build/outputs/apk/release/*.apk
+
+  # ============================================
+  # RELEASE JOB
+  # ============================================
+
+  release:
+    name: Create GitHub Release
+    needs: [build-server, build-android]
+    runs-on: ubuntu-latest
+    if: github.ref_type == 'tag'
+    steps:
+      - name: Download server artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: server-packages
+          path: dist/server
+
+      - name: Download Android AAB
+        uses: actions/download-artifact@v4
+        with:
+          name: android-aab
+          path: dist/android
+
+      - name: Download Android APK
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk
+          path: dist/android
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*
+          files: |
+            dist/server/*
+            dist/android/*
           generate_release_notes: true
+
+  # ============================================
+  # PLAY STORE DEPLOY
+  # ============================================
+
+  deploy-playstore:
+    name: Deploy to Play Store
+    needs: build-android
+    runs-on: ubuntu-latest
+    if: github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Download AAB
+        uses: actions/download-artifact@v4
+        with:
+          name: android-aab
+          path: artifacts
+
+      - name: Determine track
+        id: track
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "TRACK=${{ inputs.play_store_track }}" >> $GITHUB_OUTPUT
+          else
+            echo "TRACK=internal" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload to Play Store
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}
+          packageName: com.alessandrolattao.lanotifica
+          releaseFiles: artifacts/*.aab
+          track: ${{ steps.track.outputs.TRACK }}
+          status: completed
