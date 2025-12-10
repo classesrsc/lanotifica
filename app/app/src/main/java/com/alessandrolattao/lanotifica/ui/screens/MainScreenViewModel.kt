@@ -60,6 +60,7 @@ class MainScreenViewModel(
     fun setServerConfig(token: String, fingerprint: String) {
         viewModelScope.launch {
             settingsRepository.setServerConfig(token, fingerprint)
+            healthMonitor.forceCheck()
         }
     }
 

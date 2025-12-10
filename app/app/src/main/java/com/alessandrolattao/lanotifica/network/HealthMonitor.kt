@@ -100,6 +100,17 @@ class HealthMonitor private constructor(private val context: Context) {
     }
 
     /**
+     * Forces an immediate health check.
+     * Should be called after server configuration is updated.
+     */
+    fun forceCheck() {
+        scope.launch {
+            Log.d(TAG, "Forcing immediate health check")
+            checkHealth()
+        }
+    }
+
+    /**
      * Returns the current server URL if connected, null otherwise.
      */
     fun getServerUrlIfConnected(): String? {
