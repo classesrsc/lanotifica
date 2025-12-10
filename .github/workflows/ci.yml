@@ -42,7 +42,9 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
-          cache-dependency-path: app/*.gradle*
+          cache-dependency-path: |
+            app/*.gradle*
+            app/gradle/libs.versions.toml
 
       - name: Run lint
         run: make lint-app
@@ -82,7 +84,9 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
-          cache-dependency-path: app/*.gradle*
+          cache-dependency-path: |
+            app/*.gradle*
+            app/gradle/libs.versions.toml
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew

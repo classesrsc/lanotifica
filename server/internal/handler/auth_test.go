@@ -6,21 +6,22 @@ import (
 	"testing"
 )
 
+const testSecret = "test-secret-token"
+
 func TestAuthMiddleware_ValidToken(t *testing.T) {
 	t.Parallel()
 
-	secret := "test-secret-token"
 	nextCalled := false
 
-	next := func(w http.ResponseWriter, r *http.Request) {
+	next := func(w http.ResponseWriter, _ *http.Request) {
 		nextCalled = true
 		w.WriteHeader(http.StatusOK)
 	}
 
-	handler := AuthMiddleware(secret, next)
+	handler := AuthMiddleware(testSecret, next)
 
 	req := httptest.NewRequest(http.MethodGet, "/test", http.NoBody)
-	req.Header.Set("Authorization", "Bearer "+secret)
+	req.Header.Set("Authorization", "Bearer "+testSecret)
 
 	rr := httptest.NewRecorder()
 	handler(rr, req)
@@ -36,14 +37,13 @@ func TestAuthMiddleware_ValidToken(t *testing.T) {
 func TestAuthMiddleware_MissingHeader(t *testing.T) {
 	t.Parallel()
 
-	secret := "test-secret-token"
 	nextCalled := false
 
-	next := func(w http.ResponseWriter, r *http.Request) {
+	next := func(_ http.ResponseWriter, _ *http.Request) {
 		nextCalled = true
 	}
 
-	handler := AuthMiddleware(secret, next)
+	handler := AuthMiddleware(testSecret, next)
 
 	req := httptest.NewRequest(http.MethodGet, "/test", http.NoBody)
 	// No Authorization header
@@ -62,22 +62,21 @@ func TestAuthMiddleware_MissingHeader(t *testing.T) {
 func TestAuthMiddleware_InvalidFormat(t *testing.T) {
 	t.Parallel()
 
-	secret := "test-secret-token"
 	nextCalled := false
 
-	next := func(w http.ResponseWriter, r *http.Request) {
+	next := func(_ http.ResponseWriter, _ *http.Request) {
 		nextCalled = true
 	}
 
-	handler := AuthMiddleware(secret, next)
+	handler := AuthMiddleware(testSecret, next)
 
 	testCases := []struct {
 		name   string
 		header string
 	}{
-		{"Basic auth", "Basic " + secret},
-		{"No space", "Bearer" + secret},
-		{"Only token", secret},
+		{"Basic auth", "Basic " + testSecret},
+		{"No space", "Bearer" + testSecret},
+		{"Only token", testSecret},
 		{"Empty bearer", "Bearer"},
 	}
 
@@ -102,14 +101,13 @@ func TestAuthMiddleware_InvalidFormat(t *testing.T) {
 func TestAuthMiddleware_WrongToken(t *testing.T) {
 	t.Parallel()
 
-	secret := "correct-secret"
 	nextCalled := false
 
-	next := func(w http.ResponseWriter, r *http.Request) {
+	next := func(_ http.ResponseWriter, _ *http.Request) {
 		nextCalled = true
 	}
 
-	handler := AuthMiddleware(secret, next)
+	handler := AuthMiddleware(testSecret, next)
 
 	req := httptest.NewRequest(http.MethodGet, "/test", http.NoBody)
 	req.Header.Set("Authorization", "Bearer wrong-token")
@@ -128,14 +126,13 @@ func TestAuthMiddleware_WrongToken(t *testing.T) {
 func TestAuthMiddleware_EmptyToken(t *testing.T) {
 	t.Parallel()
 
-	secret := "test-secret"
 	nextCalled := false
 
-	next := func(w http.ResponseWriter, r *http.Request) {
+	next := func(_ http.ResponseWriter, _ *http.Request) {
 		nextCalled = true
 	}
 
-	handler := AuthMiddleware(secret, next)
+	handler := AuthMiddleware(testSecret, next)
 
 	req := httptest.NewRequest(http.MethodGet, "/test", http.NoBody)
 	req.Header.Set("Authorization", "Bearer ")

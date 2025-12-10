@@ -92,7 +92,9 @@ func TestCalculateFingerprint_Valid(t *testing.T) {
 
 	// Check uppercase hex
 	for _, c := range fingerprint {
-		if !((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F')) {
+		isDigit := c >= '0' && c <= '9'
+		isUpperHex := c >= 'A' && c <= 'F'
+		if !isDigit && !isUpperHex {
 			t.Errorf("Expected uppercase hex, got character: %c", c)
 		}
 	}
@@ -168,19 +170,8 @@ func TestConfigDir_NotEmpty(t *testing.T) {
 }
 
 func TestConfigDir_WithXDGConfigHome(t *testing.T) {
-	// Save original value
-	original := os.Getenv("XDG_CONFIG_HOME")
-	defer func() {
-		if original == "" {
-			os.Unsetenv("XDG_CONFIG_HOME")
-		} else {
-			os.Setenv("XDG_CONFIG_HOME", original)
-		}
-	}()
-
-	// Set custom XDG_CONFIG_HOME
 	customConfig := "/custom/config"
-	os.Setenv("XDG_CONFIG_HOME", customConfig)
+	t.Setenv("XDG_CONFIG_HOME", customConfig)
 
 	dir := ConfigDir()
 
