@@ -3,6 +3,7 @@ package com.alessandrolattao.lanotifica
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import com.alessandrolattao.lanotifica.di.AppModule
 
 class LaNotificaApp : Application() {
 
@@ -12,6 +13,7 @@ class LaNotificaApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        AppModule.init(this)
         createNotificationChannel()
     }
 
