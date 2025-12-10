@@ -1,7 +1,9 @@
-// Package config provides configuration management for LA-notify.
+// Package config provides configuration management for LaNotify.
 package config
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -11,6 +13,7 @@ import (
 // Config represents the application configuration.
 type Config struct {
 	Port            string `json:"port"`
+	Secret          string `json:"secret"`
 	ReadTimeout     int    `json:"read_timeout_seconds"`
 	WriteTimeout    int    `json:"write_timeout_seconds"`
 	IdleTimeout     int    `json:"idle_timeout_seconds"`
@@ -21,11 +24,20 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		Port:            ":19420",
+		Secret:          generateSecret(),
 		ReadTimeout:     10,
 		WriteTimeout:    10,
 		IdleTimeout:     120,
 		IconCacheMaxAge: 180,
 	}
+}
+
+func generateSecret() string {
+	bytes := make([]byte, 32)
+	if _, err := rand.Read(bytes); err != nil {
+		panic(fmt.Sprintf("failed to generate secret: %v", err))
+	}
+	return hex.EncodeToString(bytes)
 }
 
 var configDir string

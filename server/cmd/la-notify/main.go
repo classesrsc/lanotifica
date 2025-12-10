@@ -1,8 +1,10 @@
-// Package main is the entry point for the LA-notify server.
+// Package main is the entry point for the LaNotify server.
 package main
 
 import (
+	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"time"
 
@@ -18,8 +20,11 @@ func main() {
 
 	log.Printf("Config loaded from %s", config.Path())
 
+	serverURL := getServerURL(cfg.Port)
+
 	mux := http.NewServeMux()
-	mux.HandleFunc("/notification", handler.Notification)
+	mux.HandleFunc("/", handler.HomeHandler(serverURL, cfg.Secret))
+	mux.HandleFunc("/notification", handler.AuthMiddleware(cfg.Secret, handler.Notification))
 
 	server := &http.Server{
 		Addr:              cfg.Port,
@@ -30,9 +35,34 @@ func main() {
 		IdleTimeout:       time.Duration(cfg.IdleTimeout) * time.Second,
 	}
 
-	log.Printf("LA-notify server started on http://localhost%s", server.Addr)
+	log.Printf("LaNotify server started on %s", serverURL)
+	log.Printf("Open %s in your browser to see the QR code", serverURL)
 
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
+}
+
+func getServerURL(port string) string {
+	ip := getLocalIP()
+	if port[0] == ':' {
+		return fmt.Sprintf("http://%s%s", ip, port)
+	}
+	return fmt.Sprintf("http://%s:%s", ip, port)
+}
+
+func getLocalIP() string {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return "localhost"
+	}
+
+	for _, addr := range addrs {
+		if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				return ipnet.IP.String()
+			}
+		}
+	}
+	return "localhost"
 }
