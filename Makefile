@@ -18,7 +18,7 @@ build: ## Build the binary
 test: test-server test-app ## Run all tests
 
 test-server: ## Run server tests
-	cd $(SERVER_DIR) && go test -v ./...
+	cd $(SERVER_DIR) && go mod download && go test -v ./...
 
 test-app: ## Run Android app tests
 	cd $(APP_DIR) && ./gradlew test --quiet
@@ -26,6 +26,7 @@ test-app: ## Run Android app tests
 lint: lint-server lint-app ## Run all linters
 
 lint-server: ## Run server linter
+	@which golangci-lint > /dev/null || go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	cd $(SERVER_DIR) && golangci-lint run
 
 lint-app: ## Run Android app linter
