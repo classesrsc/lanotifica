@@ -55,6 +55,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
+          cache-dependency-path: app/*.gradle*
 
       - name: Run lint
         run: make lint-app
@@ -120,6 +121,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
+          cache-dependency-path: app/*.gradle*
 
       - name: Get version from tag
         id: version
