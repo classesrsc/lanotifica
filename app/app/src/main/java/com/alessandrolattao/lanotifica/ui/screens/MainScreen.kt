@@ -41,68 +41,73 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
-import com.alessandrolattao.lanotifica.R
 import androidx.compose.ui.unit.dp
-import com.alessandrolattao.lanotifica.data.SettingsRepository
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.alessandrolattao.lanotifica.R
 import com.alessandrolattao.lanotifica.network.HealthMonitor
 import com.alessandrolattao.lanotifica.ui.components.QrScanner
 import com.alessandrolattao.lanotifica.util.QrCodeParser
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen() {
+fun MainScreen(
+    viewModel: MainScreenViewModel = viewModel(factory = MainScreenViewModel.Factory)
+) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val settingsRepository = remember { SettingsRepository(context) }
-    val healthMonitor = remember { HealthMonitor.getInstance(context) }
+    val lifecycleOwner = LocalLifecycleOwner.current
 
-    val isConfigured by settingsRepository.isConfigured.collectAsState(initial = false)
-    val serviceEnabled by settingsRepository.serviceEnabled.collectAsState(initial = false)
-    val connectionState by healthMonitor.connectionState.collectAsState()
-    val serverUrl by healthMonitor.serverUrl.collectAsState()
+    val isConfigured by viewModel.isConfigured.collectAsState()
+    val serviceEnabled by viewModel.serviceEnabled.collectAsState()
+    val connectionState by viewModel.connectionState.collectAsState()
+    val serverUrl by viewModel.serverUrl.collectAsState()
+    val hasNotificationAccess by viewModel.hasNotificationAccess.collectAsState()
+    val isBatteryOptimizationDisabled by viewModel.isBatteryOptimizationDisabled.collectAsState()
+    val hasCameraPermission by viewModel.hasCameraPermission.collectAsState()
 
     var showQrScanner by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
-    var hasCameraPermission by remember { mutableStateOf(false) }
-    var hasNotificationAccess by remember { mutableStateOf(false) }
-    var isBatteryOptimizationDisabled by remember { mutableStateOf(false) }
 
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
-        hasCameraPermission = isGranted
+        viewModel.setCameraPermission(isGranted)
         if (isGranted) {
             showQrScanner = true
         }
     }
 
-    LaunchedEffect(Unit) {
-        while (true) {
-            hasNotificationAccess = isNotificationServiceEnabled(context)
-            isBatteryOptimizationDisabled = isBatteryOptimizationDisabled(context)
-            delay(1000)
+    // Check permissions when app resumes (lifecycle-aware, no polling!)
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.updatePermissions(
+                    notificationAccess = isNotificationServiceEnabled(context),
+                    batteryOptDisabled = isBatteryOptimizationDisabled(context)
+                )
+            }
         }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     if (showQrScanner) {
@@ -110,9 +115,7 @@ fun MainScreen() {
             onQrCodeScanned = { qrData ->
                 val parsed = QrCodeParser.parse(qrData)
                 if (parsed != null) {
-                    scope.launch {
-                        settingsRepository.setServerConfig(parsed.token, parsed.fingerprint)
-                    }
+                    viewModel.setServerConfig(parsed.token, parsed.fingerprint)
                 }
                 showQrScanner = false
             },
@@ -160,12 +163,54 @@ fun MainScreen() {
         )
     }
 
+    MainScreenContent(
+        isConfigured = isConfigured,
+        serviceEnabled = serviceEnabled,
+        connectionState = connectionState,
+        serverUrl = serverUrl,
+        hasNotificationAccess = hasNotificationAccess,
+        isBatteryOptimizationDisabled = isBatteryOptimizationDisabled,
+        hasCameraPermission = hasCameraPermission,
+        onNotificationAccessClick = { openNotificationListenerSettings(context) },
+        onBatteryOptimizationClick = { requestDisableBatteryOptimization(context) },
+        onServerConfigClick = {
+            if (hasCameraPermission) {
+                showQrScanner = true
+            } else {
+                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            }
+        },
+        onServiceEnabledChange = { viewModel.setServiceEnabled(it) },
+        onAboutClick = { showAboutDialog = true }
+    )
+}
+
+/**
+ * Stateless content composable for MainScreen.
+ * Extracted for testability.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MainScreenContent(
+    isConfigured: Boolean,
+    serviceEnabled: Boolean,
+    connectionState: HealthMonitor.ConnectionState,
+    serverUrl: String?,
+    hasNotificationAccess: Boolean,
+    isBatteryOptimizationDisabled: Boolean,
+    hasCameraPermission: Boolean,
+    onNotificationAccessClick: () -> Unit,
+    onBatteryOptimizationClick: () -> Unit,
+    onServerConfigClick: () -> Unit,
+    onServiceEnabledChange: (Boolean) -> Unit,
+    onAboutClick: () -> Unit
+) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("LaNotifica") },
                 actions = {
-                    IconButton(onClick = { showAboutDialog = true }) {
+                    IconButton(onClick = onAboutClick) {
                         Icon(
                             Icons.Outlined.HelpOutline,
                             contentDescription = "About"
@@ -192,7 +237,7 @@ fun MainScreen() {
                 title = "Notification Access",
                 subtitle = if (hasNotificationAccess) "Granted" else "Tap to grant",
                 isOk = hasNotificationAccess,
-                onClick = { openNotificationListenerSettings(context) }
+                onClick = onNotificationAccessClick
             )
 
             // Battery Optimization
@@ -201,19 +246,13 @@ fun MainScreen() {
                 title = "Battery Optimization",
                 subtitle = if (isBatteryOptimizationDisabled) "Unrestricted" else "Tap to disable",
                 isOk = isBatteryOptimizationDisabled,
-                onClick = { requestDisableBatteryOptimization(context) }
+                onClick = onBatteryOptimizationClick
             )
 
             // QR Configuration
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                onClick = {
-                    if (hasCameraPermission) {
-                        showQrScanner = true
-                    } else {
-                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-                    }
-                }
+                onClick = onServerConfigClick
             ) {
                 Row(
                     modifier = Modifier
@@ -314,11 +353,7 @@ fun MainScreen() {
                     }
                     Switch(
                         checked = serviceEnabled,
-                        onCheckedChange = { enabled ->
-                            scope.launch {
-                                settingsRepository.setServiceEnabled(enabled)
-                            }
-                        },
+                        onCheckedChange = onServiceEnabledChange,
                         enabled = hasNotificationAccess && isConfigured
                     )
                 }
