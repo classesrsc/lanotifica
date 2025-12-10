@@ -1,4 +1,4 @@
-.PHONY: test up down lint
+.PHONY: test up lint
 
 SERVER_DIR = server
 
@@ -10,6 +10,3 @@ lint:
 
 up:
 	cd $(SERVER_DIR) && air
-
-down:
-	@pkill -f la-notify || echo "Server not running"
