@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
 import android.util.Log
+import java.util.concurrent.Executors
 import kotlin.coroutines.resume
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
@@ -38,40 +39,19 @@ class ServiceDiscovery(context: Context) {
     private suspend fun discoverServerInternal(): DiscoveredServer? =
         suspendCancellableCoroutine { continuation ->
             var discoveryListener: NsdManager.DiscoveryListener? = null
+            var serviceInfoCallback: NsdManager.ServiceInfoCallback? = null
             var resolved = false
+            val executor = Executors.newSingleThreadExecutor()
 
-            val resolveListener =
-                object : NsdManager.ResolveListener {
-                    override fun onResolveFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
-                        Log.e(TAG, "Resolve failed: $errorCode")
-                        if (!resolved && continuation.isActive) {
-                            resolved = true
-                            continuation.resume(null)
-                        }
-                    }
-
-                    override fun onServiceResolved(serviceInfo: NsdServiceInfo) {
-                        Log.d(
-                            TAG,
-                            "Service resolved: ${serviceInfo.host?.hostAddress}:${serviceInfo.port}",
-                        )
-                        if (!resolved && continuation.isActive) {
-                            resolved = true
-                            val host = serviceInfo.host?.hostAddress
-                            if (host != null) {
-                                continuation.resume(DiscoveredServer(host, serviceInfo.port))
-                            } else {
-                                continuation.resume(null)
-                            }
-                        }
-                        // Stop discovery after finding the server
-                        try {
-                            discoveryListener?.let { nsdManager.stopServiceDiscovery(it) }
-                        } catch (e: Exception) {
-                            Log.w(TAG, "Error stopping discovery: ${e.message}")
-                        }
-                    }
+            fun cleanup() {
+                try {
+                    serviceInfoCallback?.let { nsdManager.unregisterServiceInfoCallback(it) }
+                    discoveryListener?.let { nsdManager.stopServiceDiscovery(it) }
+                } catch (e: Exception) {
+                    Log.w(TAG, "Error during cleanup: ${e.message}")
                 }
+                executor.shutdown()
+            }
 
             discoveryListener =
                 object : NsdManager.DiscoveryListener {
@@ -79,6 +59,7 @@ class ServiceDiscovery(context: Context) {
                         Log.e(TAG, "Discovery start failed: $errorCode")
                         if (!resolved && continuation.isActive) {
                             resolved = true
+                            cleanup()
                             continuation.resume(null)
                         }
                     }
@@ -98,7 +79,60 @@ class ServiceDiscovery(context: Context) {
                     override fun onServiceFound(serviceInfo: NsdServiceInfo) {
                         Log.d(TAG, "Service found: ${serviceInfo.serviceName}")
                         if (!resolved) {
-                            nsdManager.resolveService(serviceInfo, resolveListener)
+                            serviceInfoCallback =
+                                object : NsdManager.ServiceInfoCallback {
+                                    override fun onServiceInfoCallbackRegistrationFailed(
+                                        errorCode: Int
+                                    ) {
+                                        Log.e(
+                                            TAG,
+                                            "Service info callback registration failed: $errorCode",
+                                        )
+                                        if (!resolved && continuation.isActive) {
+                                            resolved = true
+                                            cleanup()
+                                            continuation.resume(null)
+                                        }
+                                    }
+
+                                    override fun onServiceUpdated(serviceInfo: NsdServiceInfo) {
+                                        val hostAddress =
+                                            serviceInfo.hostAddresses.firstOrNull()?.hostAddress
+                                        Log.d(
+                                            TAG,
+                                            "Service resolved: $hostAddress:${serviceInfo.port}",
+                                        )
+                                        if (!resolved && continuation.isActive) {
+                                            resolved = true
+                                            cleanup()
+                                            if (hostAddress != null) {
+                                                continuation.resume(
+                                                    DiscoveredServer(hostAddress, serviceInfo.port)
+                                                )
+                                            } else {
+                                                continuation.resume(null)
+                                            }
+                                        }
+                                    }
+
+                                    override fun onServiceLost() {
+                                        Log.d(TAG, "Service lost during resolution")
+                                        if (!resolved && continuation.isActive) {
+                                            resolved = true
+                                            cleanup()
+                                            continuation.resume(null)
+                                        }
+                                    }
+
+                                    override fun onServiceInfoCallbackUnregistered() {
+                                        Log.d(TAG, "Service info callback unregistered")
+                                    }
+                                }
+                            nsdManager.registerServiceInfoCallback(
+                                serviceInfo,
+                                executor,
+                                serviceInfoCallback!!,
+                            )
                         }
                     }
 
@@ -107,13 +141,7 @@ class ServiceDiscovery(context: Context) {
                     }
                 }
 
-            continuation.invokeOnCancellation {
-                try {
-                    discoveryListener?.let { nsdManager.stopServiceDiscovery(it) }
-                } catch (e: Exception) {
-                    Log.w(TAG, "Error stopping discovery on cancellation: ${e.message}")
-                }
-            }
+            continuation.invokeOnCancellation { cleanup() }
 
             Log.d(TAG, "Starting discovery for $SERVICE_TYPE")
             nsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, discoveryListener)

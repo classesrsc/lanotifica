@@ -1,88 +1,97 @@
 package com.alessandrolattao.lanotifica.data
 
 import android.content.Context
-import android.content.SharedPreferences
+import android.util.Base64
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
-import kotlinx.coroutines.Dispatchers
+import com.google.crypto.tink.Aead
+import com.google.crypto.tink.RegistryConfiguration
+import com.google.crypto.tink.aead.AeadConfig
+import com.google.crypto.tink.aead.AesGcmKeyManager
+import com.google.crypto.tink.integration.android.AndroidKeysetManager
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.withContext
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 class SettingsRepository(private val context: Context) {
 
     companion object {
-        // Keys for encrypted storage (sensitive data)
-        private const val ENCRYPTED_PREFS_NAME = "secure_settings"
-        private const val KEY_AUTH_TOKEN = "auth_token"
-        private const val KEY_CERT_FINGERPRINT = "cert_fingerprint"
+        private const val KEYSET_NAME = "lanotifica_keyset"
+        private const val PREF_FILE_NAME = "lanotifica_keyset_prefs"
+        private const val MASTER_KEY_URI = "android-keystore://lanotifica_master_key"
 
-        // Keys for DataStore (non-sensitive data)
+        // Keys for DataStore
+        private val AUTH_TOKEN = stringPreferencesKey("auth_token")
+        private val CERT_FINGERPRINT = stringPreferencesKey("cert_fingerprint")
         private val SERVICE_ENABLED = booleanPreferencesKey("service_enabled")
         private val CACHED_SERVER_URL = stringPreferencesKey("cached_server_url")
     }
 
-    private val encryptedPrefs: SharedPreferences by lazy {
-        val masterKey =
-            MasterKey.Builder(context).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build()
+    private val aead: Aead by lazy {
+        AeadConfig.register()
+        val keysetHandle =
+            AndroidKeysetManager.Builder()
+                .withSharedPref(context, KEYSET_NAME, PREF_FILE_NAME)
+                .withKeyTemplate(AesGcmKeyManager.aes256GcmTemplate())
+                .withMasterKeyUri(MASTER_KEY_URI)
+                .build()
+                .keysetHandle
+        keysetHandle.getPrimitive(RegistryConfiguration.get(), Aead::class.java)
+    }
 
-        EncryptedSharedPreferences.create(
-            context,
-            ENCRYPTED_PREFS_NAME,
-            masterKey,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
-        )
+    private fun encrypt(plaintext: String): String {
+        if (plaintext.isBlank()) return ""
+        val ciphertext = aead.encrypt(plaintext.toByteArray(Charsets.UTF_8), null)
+        return Base64.encodeToString(ciphertext, Base64.NO_WRAP)
+    }
+
+    private fun decrypt(ciphertext: String): String {
+        if (ciphertext.isBlank()) return ""
+        return try {
+            val decoded = Base64.decode(ciphertext, Base64.NO_WRAP)
+            String(aead.decrypt(decoded, null), Charsets.UTF_8)
+        } catch (e: Exception) {
+            ""
+        }
     }
 
     val authToken: Flow<String> =
-        flow { emit(encryptedPrefs.getString(KEY_AUTH_TOKEN, "") ?: "") }.flowOn(Dispatchers.IO)
+        context.dataStore.data.map { prefs -> prefs[AUTH_TOKEN]?.let { decrypt(it) } ?: "" }
 
     val certFingerprint: Flow<String> =
-        flow { emit(encryptedPrefs.getString(KEY_CERT_FINGERPRINT, "") ?: "") }
-            .flowOn(Dispatchers.IO)
+        context.dataStore.data.map { prefs -> prefs[CERT_FINGERPRINT]?.let { decrypt(it) } ?: "" }
 
     val serviceEnabled: Flow<Boolean> =
-        context.dataStore.data.map { preferences -> preferences[SERVICE_ENABLED] ?: false }
+        context.dataStore.data.map { prefs -> prefs[SERVICE_ENABLED] ?: false }
 
     val cachedServerUrl: Flow<String> =
-        context.dataStore.data.map { preferences -> preferences[CACHED_SERVER_URL] ?: "" }
+        context.dataStore.data.map { prefs -> prefs[CACHED_SERVER_URL] ?: "" }
 
     val isConfigured: Flow<Boolean> =
-        flow {
-                val token = encryptedPrefs.getString(KEY_AUTH_TOKEN, "") ?: ""
-                val fingerprint = encryptedPrefs.getString(KEY_CERT_FINGERPRINT, "") ?: ""
-                emit(token.isNotBlank() && fingerprint.isNotBlank())
-            }
-            .flowOn(Dispatchers.IO)
+        context.dataStore.data.map { prefs ->
+            val token = prefs[AUTH_TOKEN]?.let { decrypt(it) } ?: ""
+            val fingerprint = prefs[CERT_FINGERPRINT]?.let { decrypt(it) } ?: ""
+            token.isNotBlank() && fingerprint.isNotBlank()
+        }
 
     suspend fun setServerConfig(token: String, fingerprint: String) {
-        withContext(Dispatchers.IO) {
-            encryptedPrefs
-                .edit()
-                .putString(KEY_AUTH_TOKEN, token)
-                .putString(KEY_CERT_FINGERPRINT, fingerprint)
-                .apply()
+        context.dataStore.edit { prefs ->
+            prefs[AUTH_TOKEN] = encrypt(token)
+            prefs[CERT_FINGERPRINT] = encrypt(fingerprint)
+            prefs.remove(CACHED_SERVER_URL)
         }
-        // Clear cached URL to force rediscovery
-        context.dataStore.edit { preferences -> preferences.remove(CACHED_SERVER_URL) }
     }
 
     suspend fun setCachedServerUrl(url: String) {
-        context.dataStore.edit { preferences -> preferences[CACHED_SERVER_URL] = url }
+        context.dataStore.edit { prefs -> prefs[CACHED_SERVER_URL] = url }
     }
 
     suspend fun setServiceEnabled(enabled: Boolean) {
-        context.dataStore.edit { preferences -> preferences[SERVICE_ENABLED] = enabled }
+        context.dataStore.edit { prefs -> prefs[SERVICE_ENABLED] = enabled }
     }
 }

@@ -104,7 +104,7 @@ dependencies {
     implementation(libs.okhttp.logging)
 
     implementation(libs.datastore.preferences)
-    implementation(libs.security.crypto)
+    implementation(libs.tink.android)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 
     implementation(libs.camera.core)
