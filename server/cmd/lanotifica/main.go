@@ -41,6 +41,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", handler.HomeHandler(cfg.Secret, certificate.Fingerprint))
+	mux.HandleFunc("/favicon.png", handler.FaviconHandler())
 	mux.HandleFunc("/health", handler.Health)
 	mux.HandleFunc("/notification", handler.AuthMiddleware(cfg.Secret, handler.Notification))
 
