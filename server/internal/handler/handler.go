@@ -33,7 +33,6 @@ func Notification(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("Notification sent: %s - %s", req.Title, req.Message)
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(map[string]string{"status": "sent"}); err != nil {
 		log.Printf("Error encoding response: %v", err)
