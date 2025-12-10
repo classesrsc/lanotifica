@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://github.com/alessandrolattao/lanotifica/actions/workflows/ci.yml">
-    <img src="https://github.com/alessandrolattao/lanotifica/actions/workflows/ci.yml/badge.svg" alt="CI">
+    <img src="https://img.shields.io/github/actions/workflow/status/alessandrolattao/lanotifica/ci.yml?style=for-the-badge&logo=github&label=CI" alt="CI">
   </a>
   <a href="https://play.google.com/store/apps/details?id=com.alessandrolattao.lanotifica">
     <img src="https://img.shields.io/badge/Google_Play-Download-green?style=for-the-badge&logo=google-play" alt="Google Play">
