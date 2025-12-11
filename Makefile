@@ -26,7 +26,7 @@ test-app: ## Run Android app tests
 lint: lint-server lint-app ## Run all linters
 
 lint-server: ## Run server linter
-	@which golangci-lint > /dev/null || go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	@which golangci-lint > /dev/null || go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
 	cd $(SERVER_DIR) && golangci-lint run
 
 lint-app: ## Run Android app linter
