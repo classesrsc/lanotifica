@@ -17,7 +17,7 @@
   </a>
   <img src="https://img.shields.io/badge/Android-14+-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android 14+">
   <img src="https://img.shields.io/badge/Tested_on-Pixel_8_Pro-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Tested on Pixel 8 Pro">
-  <img src="https://img.shields.io/badge/Go-1.21+-00ADD8?style=for-the-badge&logo=go&logoColor=white" alt="Go">
+  <img src="https://img.shields.io/badge/Go-1.25+-00ADD8?style=for-the-badge&logo=go&logoColor=white" alt="Go">
   <img src="https://img.shields.io/badge/License-AGPL--3.0-blue?style=for-the-badge" alt="AGPL-3.0 License">
 </p>
 
