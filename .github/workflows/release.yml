@@ -41,7 +41,10 @@ jobs:
         run: make test-server
 
       - name: Run linter
-        run: make lint-server
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: latest
+          working-directory: server
 
   test-android:
     name: Test Android
