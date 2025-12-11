@@ -1,4 +1,5 @@
 %global debug_package %{nil}
+%define _userunitdir %{_prefix}/lib/systemd/user
 
 Name:           lanotifica
 Version:        %{version}
