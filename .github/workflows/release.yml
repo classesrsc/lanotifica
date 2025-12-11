@@ -208,6 +208,40 @@ jobs:
           generate_release_notes: true
 
   # ============================================
+  # COPR DEPLOY (Fedora/EPEL)
+  # ============================================
+
+  deploy-copr:
+    name: Deploy to COPR
+    needs: test-server
+    runs-on: ubuntu-latest
+    if: github.ref_type == 'tag'
+    steps:
+      - name: Install copr-cli
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip
+          pip3 install copr-cli
+
+      - name: Configure COPR
+        run: |
+          mkdir -p ~/.config
+          cat > ~/.config/copr << EOF
+          [copr-cli]
+          login = ${{ secrets.COPR_LOGIN }}
+          username = alessandrolattao
+          token = ${{ secrets.COPR_TOKEN }}
+          copr_url = https://copr.fedorainfracloud.org
+          EOF
+
+      - name: Trigger COPR build
+        run: |
+          copr-cli build-package lanotifica \
+            --name lanotifica \
+            --commit ${{ github.ref_name }} \
+            --nowait
+
+  # ============================================
   # PLAY STORE DEPLOY
   # ============================================
 
