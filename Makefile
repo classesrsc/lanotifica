@@ -44,7 +44,7 @@ up: ## Start dev server with hot reload
 	cd $(SERVER_DIR) && air
 
 rpm: build ## Build RPM package
-	mkdir -p ~/rpmbuild/{SOURCES,SPECS,BUILD,RPMS,SRPMS}
+	mkdir -p ~/rpmbuild/SOURCES ~/rpmbuild/SPECS ~/rpmbuild/BUILD ~/rpmbuild/RPMS ~/rpmbuild/SRPMS
 	tar --transform "s,^,lanotifica-$(VERSION)/," \
 	    -czf ~/rpmbuild/SOURCES/lanotifica-$(VERSION).tar.gz \
 	    bin/ packaging/ LICENSE
