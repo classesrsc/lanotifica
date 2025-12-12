@@ -236,9 +236,10 @@ jobs:
 
       - name: Trigger COPR build
         run: |
-          copr-cli build-package lanotifica \
-            --name lanotifica \
+          copr-cli buildscm lanotifica \
+            --clone-url https://github.com/alessandrolattao/lanotifica.git \
             --commit ${{ github.ref_name }} \
+            --method make_srpm \
             --nowait
 
   # ============================================
