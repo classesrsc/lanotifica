@@ -29,10 +29,6 @@ jobs:
       - fedora-42-x86_64
       - fedora-43-x86_64
       - fedora-rawhide-x86_64
-      - epel-8-x86_64
-      - epel-9-x86_64
       - epel-10-x86_64
-      - centos-stream-9-x86_64
       - centos-stream-10-x86_64
-      - almalinux-9-x86_64
     enable_net: true
