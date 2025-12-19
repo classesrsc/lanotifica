@@ -194,6 +194,8 @@ var homeTemplate = template.Must(template.New("home").Parse(`<!DOCTYPE html>
             <p class="note">
                 The QR contains your auth token and certificate fingerprint.
                 Server discovery happens automatically via mDNS.
+                <br><br>
+                <span style="color: #777;">Version {{.Version}}</span>
             </p>
         </div>
     </div>
@@ -210,7 +212,7 @@ func FaviconHandler() http.HandlerFunc {
 }
 
 // HomeHandler returns a handler that displays the home page with QR code.
-func HomeHandler(secret, certFingerprint string) http.HandlerFunc {
+func HomeHandler(secret, certFingerprint, version string) http.HandlerFunc {
 	// QR format: token|fingerprint (URL is discovered via mDNS)
 	qrData := fmt.Sprintf("%s|%s", secret, certFingerprint)
 
@@ -229,8 +231,9 @@ func HomeHandler(secret, certFingerprint string) http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		if err := homeTemplate.Execute(w, map[string]string{
-			"QRCode": qrBase64,
-			"Logo":   logoBase64,
+			"QRCode":  qrBase64,
+			"Logo":    logoBase64,
+			"Version": version,
 		}); err != nil {
 			log.Printf("Failed to render home page: %v", err)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)

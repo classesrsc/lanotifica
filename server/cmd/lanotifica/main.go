@@ -16,6 +16,9 @@ import (
 	"github.com/alessandrolattao/lanotifica/internal/mdns"
 )
 
+// Version is set at build time via -ldflags "-X main.Version=x.y.z".
+var Version = "dev"
+
 func main() {
 	cfg, err := config.Load()
 	if err != nil {
@@ -40,7 +43,7 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", handler.HomeHandler(cfg.Secret, certificate.Fingerprint))
+	mux.HandleFunc("/", handler.HomeHandler(cfg.Secret, certificate.Fingerprint, Version))
 	mux.HandleFunc("/favicon.png", handler.FaviconHandler())
 	mux.HandleFunc("/health", handler.Health)
 	mux.HandleFunc("/notification", handler.AuthMiddleware(cfg.Secret, handler.Notification))

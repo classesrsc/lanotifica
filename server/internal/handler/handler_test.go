@@ -161,7 +161,7 @@ func TestHealth_MethodNotAllowed(t *testing.T) {
 func TestHomeHandler_Success(t *testing.T) {
 	t.Parallel()
 
-	handler := HomeHandler("test-secret", "test-fingerprint")
+	handler := HomeHandler("test-secret", "test-fingerprint", "test")
 
 	req := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 	rr := httptest.NewRecorder()
@@ -181,7 +181,7 @@ func TestHomeHandler_Success(t *testing.T) {
 func TestHomeHandler_ContainsQRCode(t *testing.T) {
 	t.Parallel()
 
-	handler := HomeHandler("test-secret", "test-fingerprint")
+	handler := HomeHandler("test-secret", "test-fingerprint", "test")
 
 	req := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 	rr := httptest.NewRecorder()
@@ -204,7 +204,7 @@ func TestHomeHandler_ContainsQRCode(t *testing.T) {
 func TestHomeHandler_NotFoundForOtherPaths(t *testing.T) {
 	t.Parallel()
 
-	handler := HomeHandler("test-secret", "test-fingerprint")
+	handler := HomeHandler("test-secret", "test-fingerprint", "test")
 
 	paths := []string{"/other", "/api", "/test"}
 

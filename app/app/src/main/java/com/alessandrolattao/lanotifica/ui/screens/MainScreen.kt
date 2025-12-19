@@ -140,10 +140,18 @@ fun MainScreen(viewModel: MainScreenViewModel = viewModel(factory = MainScreenVi
                 }
             },
             text = {
-                Text(
-                    "Forward notifications from your Android device to your Linux desktop.\n\n" +
-                        "To get started, you need to install and run the LaNotifica server on your computer."
-                )
+                Column {
+                    Text(
+                        "Forward notifications from your Android device to your Linux desktop.\n\n" +
+                            "To get started, you need to install and run the LaNotifica server on your computer."
+                    )
+                    Spacer(modifier = Modifier.size(16.dp))
+                    Text(
+                        text = "Version ${context.packageManager.getPackageInfo(context.packageName, 0).versionName}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             },
             confirmButton = {
                 TextButton(
