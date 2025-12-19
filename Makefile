@@ -48,7 +48,7 @@ rpm: build ## Build RPM package
 	tar --transform "s,^,lanotifica-$(VERSION)/," \
 	    -czf ~/rpmbuild/SOURCES/lanotifica-$(VERSION).tar.gz \
 	    bin/ packaging/ LICENSE
-	rpmbuild -bb --define "version $(VERSION)" packaging/rpm/lanotifica.spec
+	rpmbuild -bb --define "pkg_version $(VERSION)" packaging/rpm/lanotifica.spec
 
 deb: build ## Build DEB package
 	rm -rf /tmp/lanotifica-deb
