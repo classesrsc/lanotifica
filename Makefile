@@ -13,7 +13,7 @@ help: ## Show available commands
 	@echo ""
 
 build: ## Build the binary
-	cd $(SERVER_DIR) && go build -ldflags "-s -w" -o ../bin/lanotifica ./cmd/lanotifica
+	cd $(SERVER_DIR) && go build -ldflags "-s -w -X main.Version=$(VERSION)" -o ../bin/lanotifica ./cmd/lanotifica
 
 test: test-server test-app ## Run all tests
 
